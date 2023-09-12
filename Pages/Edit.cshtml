@@ -1,0 +1,126 @@
+﻿@page "/EditProduct/{id}"
+@model WebApplication1.Pages.EditModel
+@{
+    string productId = RouteData.Values["id"]?.ToString();
+        
+}
+<div id="content">
+   
+    <form method="post">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Edit product @productId</h1>
+               
+            </div>
+
+            <div class="modal-body">
+                <div class="input-item">
+                    <h3 class="label-input">Tên sản phẩm</h3>
+                    <input onchange="onChangeProductName()" id="input-product-name" class="input-value-item col-12" placeholder="Nhập tên sản phẩm" type="text" />
+                    <span class="error-product-name text-danger"></span>
+                </div>
+                <div class="input-item">
+                    <h3 class="label-input">Mã sản phẩm</h3>
+                    <input onchange="onChangeProductCode()" id="input-product-code" class="input-value-item col-12" placeholder="Nhập mã sản phẩm" type="text" />
+                    <span class="error-product-code text-danger"></span>
+                </div>
+                <div class="input-item">
+                    <h3 class="label-input">Giá sản phẩm</h3>
+                    <input onchange="onChangeProducPrice()" id="input-product-price" class="input-value-item col-12" placeholder="Nhập giá sản phẩm" type="text" />
+                    <span class="error-product-price text-danger"></span>
+                </div>
+                <div class="input-item">
+                    <h3 class="label-input">Mô tả sản phẩm</h3>
+                    <input onchange="onChangeProductDescription()" id="input-product-description" class="input-value-item col-12" placeholder="Nhập mô tả sản phẩm" type="text" />
+                    <span class="error-product-description text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+             
+                <button onclick="saveProduct()" type="button" id="btn-add" class="btn btn-primary">Save</button>
+            </div>
+    </form>
+</div>
+<script>
+    var inputProductName = document.getElementById("input-product-name");
+    var inputProductPrice = document.getElementById("input-product-price");
+    var inputProductCode = document.getElementById("input-product-code");
+    var inputProductDesciption = document.getElementById("input-product-description");
+    var errorProductName = document.querySelector(".error-product-name");
+    var errorProductPrice = document.querySelector(".error-product-price");
+    var errorProductCode = document.querySelector(".error-product-code");
+    var errorProductDescription = document.querySelector(".error-product-description");
+    var productName = "";
+    var productPrice = "";
+    var productCode = "";
+    var productDesciption = "";
+    function getProductById(){
+        fetch(`/GetProductById?id=@productId`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then((res) => {
+            return res.json();
+        }).then((data) => {
+            try{
+                inputProductName.value = data.data.productName;
+                productName = data.data.productName;
+                inputProductPrice.value = data.data.price;
+                productPrice = data.data.price
+                inputProductCode.value = data.data.id;
+                productCode = data.data.id
+                inputProductDesciption.value = data.data.description;
+                productDesciption = data.data.description;
+            }
+            catch(error){
+                console.log(error)
+            }
+             
+        });
+    }
+    function onChangeProductName() {
+        productName = inputProductName.value;
+    }
+    function onChangeProducPrice() {
+        productPrice = inputProductPrice.value;
+    }
+    function onChangeProductCode() {
+
+        productCode = inputProductCode.value;
+    }
+    function onChangeProductDescription() {
+
+        productDesciption = inputProductDesciption.value;
+    }
+    function saveProduct(){
+        var requestData = {
+            Id: productCode,
+            ProductName: productName,
+            Price: productPrice,
+            Description: productDesciption
+        };
+        fetch(`/EditProduct`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        }).then((res) => {
+            return res.json();
+        }).then((data) => {
+            if(data.status == 200){
+                console.log("active sucess");
+                alert("Cập nhật thành công !!!");
+            }
+            if (data.status == 400) {
+                console.log(" active failed");
+                alert("Cập nhật thất bại !!!");
+            }
+        });
+    }
+  
+    getProductById();
+</script>                                                                                                                                                           

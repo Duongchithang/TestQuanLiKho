@@ -1,0 +1,190 @@
+﻿@page
+@using Models
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+    bool displayModal = false;
+
+}
+
+<div class="">
+    <!-- Button display modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Thêm sản phẩm
+    </button>
+
+    <!-- Modal -->
+     
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div style="margin-top : 200px" class="modal-dialog">
+            <form method="post">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Thêm sản phẩm</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                  
+                    <div class="modal-body">
+                       <div class="input-item">
+                            <h3 class="label-input">Tên sản phẩm</h3>
+                            <input onchange="onChangeProductName()" id="input-product-name" class="input-value-item col-12" placeholder="Nhập tên sản phẩm" type="text" />
+                            <span class="error-product-name text-danger"></span>
+                        </div>
+                        <div class="input-item">
+                            <h3 class="label-input">Mã sản phẩm</h3>
+                            <input onchange="onChangeProductCode()" id="input-product-code" class="input-value-item col-12" placeholder="Nhập mã sản phẩm" type="text" />
+                            <span class="error-product-code text-danger"></span>
+                        </div>
+                        <div class="input-item">
+                            <h3 class="label-input">Giá sản phẩm</h3>
+                            <input onchange="onChangeProducPrice()" id="input-product-price" class="input-value-item col-12" placeholder="Nhập giá sản phẩm" type="text" />
+                            <span class="error-product-price text-danger"></span>
+                        </div>
+                        <div class="input-item">
+                            <h3 class="label-input">Mô tả sản phẩm</h3>
+                            <input onchange="onChangeProductDescription()" id="input-product-description" class="input-value-item col-12" placeholder="Nhập mô tả sản phẩm" type="text" />
+                            <span class="error-product-description text-danger"></span>
+                        </div>
+                        
+                    </div>
+                   
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button onclick="AddProduct()" type="button" id="btn-add" class="btn btn-primary">Add</button>
+                    </div>
+            </form>
+                </div>
+            </div>
+        </div>
+</div>
+   
+<table class="table mt-5">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Mã sản phẩm</th>
+            <th scope="col">Tên sản phẩm</th>
+            <th scope="col">Giá sản phẩm</th>
+            <th scope="col">Mô tả sản phẩm</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody class="list-product">
+        @for (var i = 0;  i < Model.Products.Count; i++)
+        {
+            <tr class="item-product">
+                <th scope="row">@i</th>
+                <td>@Model.Products[i].Id</td>
+                <td>@Model.Products[i].ProductName</td>
+                <td>@Model.Products[i].Price</td>
+                <td>@Model.Products[i].Description</td>
+                <td>
+                    <div>
+                        <button type="button" class="btn btn-primary"><a style="color: white; text-decoration : none" href="/EditProduct/@Model.Products[i].Id">Sửa</a></button>
+                        <button type="button" onclick="handleRemoveProduct('@Model.Products[i].Id', '@i')" class="btn btn-danger">Xóa</button>
+                    </div>
+                </td>
+            </tr>
+        }
+
+       
+    </tbody>
+</table>
+<script>
+    var inputProductName = document.getElementById("input-product-name");
+    var inputProductPrice = document.getElementById("input-product-price");
+    var inputProductCode = document.getElementById("input-product-code");
+    var inputProductDesciption = document.getElementById("input-product-description");
+    var listProduct = document.querySelector(".list-product");
+    var itemProduct = document.querySelectorAll(".item-product");
+    var errorProductName = document.querySelector(".error-product-name");
+    var errorProductPrice = document.querySelector(".error-product-price");
+    var errorProductCode = document.querySelector(".error-product-code");
+    var errorProductDescription = document.querySelector(".error-product-description");
+    var productName = "";
+    var productPrice = "";
+    var productCode = "";
+    var productDesciption = "";
+  
+    function AddProduct() {
+        var myModal = document.getElementById("exampleModal");
+        var modal = new bootstrap.Modal(myModal);
+        var requestData = {
+            Id : productCode,
+            ProductName : productName,
+            Price : productPrice,
+            Description : productDesciption
+        };
+        fetch("/CreateProduct", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        }).then((res) => {
+            return res.json();
+        }).then((data)=>{
+            if(data){
+                console.log(data);
+                  if(data.status == 400){
+                    errorProductName.innerHTML = data.errors.ProductName[0] || "";
+                    errorProductPrice.innerHTML = data.errors.Price[0] || "";
+                    errorProductCode.innerHTML = data.errors.Id[0] || "";
+                    errorProductDescription.innerHTML = data.errors.Description[0] || "";
+                  }
+                   
+               
+               if(data.status == 200){
+                    errorProductName.innerHTML =  "";
+                    errorProductPrice.innerHTML =  "";
+                    errorProductCode.innerHTML =  "";
+                    errorProductDescription.innerHTML = "";
+                    var newTr = `<tr><th scope='row'>@Model.Products.Count</th><td>${data.data.id}</td><td>${data.data.productName}</td><td>${data.data.price}</td><td>${data.data.description}</td><td><div><button type='button' onclick='handleEditProduct()' class='btn btn-primary'>Sửa</button><button type='button' onclick = 'handleRemoveProduct()' class='btn btn-danger'>Xóa</button></div></td></tr>`;
+                    listProduct.innerHTML += newTr;  
+                    showAlert("Thêm sản phẩm thành công !!!");
+               }
+              
+               
+                
+            }
+        });
+       
+     }
+   
+     function showAlert(message){
+       alert(message);
+     }
+     function handleEditProduct(){
+        console.log(itemProduct);
+     }
+     function handleRemoveProduct(Id, index){     
+        fetch(`/DeleteProduct/?id=${Id}` , {
+            method: "POST",
+        }).then((res) => {
+            return res.json();
+        }).then((data) => {        
+              if(data){
+                if (index >= 0 && index < itemProduct.length) {
+                    // Sử dụng parent node để xóa phần tử con tương ứng
+                    itemProduct[index].parentNode.removeChild(itemProduct[index]);
+                }
+              }          
+        });
+
+     }
+     function onChangeProductName(){
+        productName = inputProductName.value;
+     }
+     function onChangeProducPrice(){
+        productPrice = inputProductPrice.value;
+     }
+     function onChangeProductCode(){
+
+        productCode = inputProductCode.value;
+     }
+     function onChangeProductDescription(){
+      
+        productDesciption = inputProductDesciption.value;
+     }
+ 
+</script>
